@@ -3,6 +3,9 @@
 # Total supply
 totalSupply: public(uint256)
 
+# Decimals
+decimals: constant(uint256) = 18
+
 # Token name
 tokenName: public(String[32])
 
@@ -24,6 +27,22 @@ tokenAllowance: public(HashMap[address, HashMap[address, uint256]])
 # Paused or not
 paused: public(bool)
 
+# Events
+event Transfer:
+    fromUser: address
+    toUser: address
+    amount: uint256
+
+event Give_Allowance:
+    fromUser: address
+    toUser: address
+    amount: uint256
+
+event Remove_Allowance:
+    fromUser: address
+    toUser: address
+    amount: uint256
+
 # Constructor
 @external
 def __init__(_totalSupply: uint256, _tokenName: String[32], _tokenSymbol: String[32]):
@@ -40,12 +59,14 @@ def __init__(_totalSupply: uint256, _tokenName: String[32], _tokenSymbol: String
 def _give_allowance(fromUser: address, spender: address, allowance: uint256) -> bool:
     assert self.tokenAllowance[fromUser][spender] + allowance <= self.totalSupply
     self.tokenAllowance[fromUser][spender] += allowance
+    log Give_Allowance(fromUser, spender, allowance)
     return True
 
 # Remove allowance function [internal]
 @internal
 def _remove_allowance(fromUser: address, spender: address, allowance: uint256) -> bool:
     self.tokenAllowance[fromUser][spender] -= allowance
+    log Remove_Allowance(fromUser, spender, allowance)
     return True
 
 # Transfer function [internal]
@@ -53,6 +74,7 @@ def _remove_allowance(fromUser: address, spender: address, allowance: uint256) -
 def _transfer(fromUser: address, toUser: address, amount: uint256) -> bool:
     self.tokenBalance[fromUser] -= amount
     self.tokenBalance[toUser] += amount
+    log Transfer(fromUser, toUser, amount)
     return True
 
 # Give allowance [external]
